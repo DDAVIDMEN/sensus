@@ -43,7 +43,7 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     if not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
-    token = create_access_token(data={"sub": user.email, "user_id": user.id})
+    token = create_access_token(data={"sub": str(user.id), "email": user.email})
 
     return {
         "access_token": token,
