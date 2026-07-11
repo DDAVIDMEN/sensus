@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = response.data.access_token;
 
     const payload = JSON.parse(atob(token.split(".")[1]));
+    console.log("PAYLOAD JWT:", payload);
 
     const loggedUser = {
       id: Number(payload.sub),

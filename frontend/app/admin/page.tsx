@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/services/api";
 import { Song } from "@/types";
+import AppShell from "@/components/AppShell";
 
 function AdminContent() {
   const [songs, setSongs] = useState<Song[]>([]);

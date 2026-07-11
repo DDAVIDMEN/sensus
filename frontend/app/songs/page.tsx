@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
 import { Song, EmotionResponse, SongStatus } from "@/types";
+import AppShell from "@/components/AppShell";
 
 const EMOTIONS = ["Alegría", "Nostalgia", "Esperanza"];
 
@@ -277,18 +278,12 @@ function SongsContent() {
   }
 
   return (
-    <div style={styles.page}>
+    <AppShell
+      title="Tu recorrido musical"
+      description="Escucha cada pieza y selecciona la emoción que mejor representa lo que despierta en ti."
+    >
 
-      {/* Header */}
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Sensus</h1>
-          <p style={styles.subtitle}>{user?.email}</p>
-        </div>
-        <button style={styles.logoutBtn} onClick={logout}>
-          Cerrar sesión
-        </button>
-      </div>
+
 
       {/* Progreso */}
       <div style={styles.progressSection}>
@@ -370,7 +365,7 @@ function SongsContent() {
         )}
       </div>
 
-    </div>
+      </AppShell>
   );
 }
 

@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { AxiosError } from "axios";
+import AuthCard from "@/components/AuthCard";
 
 
 export default function LoginPage() {
@@ -36,64 +37,113 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gray-950">
-      <div className="w-full max-w-md p-8 bg-gray-900 rounded-2xl shadow-xl">
-        <h1 className="text-3xl font-bold text-white mb-2">Sensus</h1>
-        <p className="text-gray-400 mb-8">Ingresa a tu cuenta</p>
+  <AuthCard
+    title="Ingresa a tu cuenta"
+    subtitle="Continúa tu experiencia emocional con Sensus."
+    footerText="¿No tienes cuenta?"
+    footerLinkText="Regístrate"
+    footerHref="/register"
+  >
+    <form onSubmit={handleSubmit}>
+      <div style={{ marginBottom: "18px" }}>
+        <label
+          htmlFor="email"
+          style={{
+            display: "block",
+            marginBottom: "8px",
+            fontSize: "14px",
+            fontWeight: 600,
+            color: "var(--text-secondary)",
+          }}
+        >
+          Correo electrónico
+        </label>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label htmlFor="email" className="text-sm text-gray-300 mb-1 block">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="text-sm text-gray-300 mb-1 block">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-400 bg-red-950 px-4 py-2 rounded-lg">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="mt-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
-          >
-            {isSubmitting ? "Ingresando..." : "Ingresar"}
-          </button>
-        </form>
-
-        <p className="text-gray-500 text-sm text-center mt-6">
-          ¿No tienes cuenta?{" "}
-          <Link href="/register" className="text-indigo-400 hover:underline">
-            Regístrate
-          </Link>
-        </p>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+          style={{
+            width: "100%",
+            minHeight: "48px",
+            padding: "0 14px",
+            borderRadius: "10px",
+            border: "1px solid var(--border-light)",
+            backgroundColor: "var(--surface)",
+            color: "var(--text-primary)",
+            outline: "none",
+          }}
+        />
       </div>
-    </main>
+
+      <div style={{ marginBottom: "18px" }}>
+        <label
+          htmlFor="password"
+          style={{
+            display: "block",
+            marginBottom: "8px",
+            fontSize: "14px",
+            fontWeight: 600,
+            color: "var(--text-secondary)",
+          }}
+        >
+          Contraseña
+        </label>
+
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+          style={{
+            width: "100%",
+            minHeight: "48px",
+            padding: "0 14px",
+            borderRadius: "10px",
+            border: "1px solid var(--border-light)",
+            backgroundColor: "var(--surface)",
+            color: "var(--text-primary)",
+            outline: "none",
+          }}
+        />
+      </div>
+
+      {error && (
+        <p
+          style={{
+            marginBottom: "18px",
+            padding: "12px 14px",
+            borderRadius: "10px",
+            backgroundColor: "rgba(248, 113, 113, 0.12)",
+            border: "1px solid rgba(248, 113, 113, 0.35)",
+            color: "var(--danger)",
+            fontSize: "14px",
+            lineHeight: 1.5,
+          }}
+        >
+          {error}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="sensus-button-primary"
+        style={{
+          width: "100%",
+          border: "none",
+          cursor: isSubmitting ? "not-allowed" : "pointer",
+          opacity: isSubmitting ? 0.65 : 1,
+        }}
+      >
+        {isSubmitting ? "Ingresando..." : "Ingresar"}
+      </button>
+    </form>
+  </AuthCard>
   );
 }
