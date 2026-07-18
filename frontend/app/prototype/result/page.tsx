@@ -32,9 +32,9 @@ export default function ResultPrototypePage() {
             <p
               style={{
                 margin: "0 0 10px",
-                color: "var(--accent)",
-                fontSize: "13px",
-                fontWeight: 700,
+                color: "var(--gold-light)",
+                fontSize: "15px",
+                fontWeight: 800,
                 letterSpacing: "0.15em",
                 textTransform: "uppercase",
               }}
@@ -116,7 +116,7 @@ export default function ResultPrototypePage() {
               >
                 <strong
                   style={{
-                    color: "var(--accent)",
+                    color: "var(--gold-light)",
                     fontSize: "27px",
                     letterSpacing: "0.06em",
                   }}

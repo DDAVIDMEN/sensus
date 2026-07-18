@@ -45,7 +45,6 @@ export default function SongPrototypePage() {
               <p
                 style={{
                   margin: "30px 0 8px",
-                  color: "var(--text-muted)",
                   fontSize: "13px",
                   fontWeight: 700,
                   letterSpacing: "0.14em",
@@ -59,6 +58,7 @@ export default function SongPrototypePage() {
                 style={{
                   margin: 0,
                   fontSize: "clamp(44px, 8vw, 78px)",
+                  color: "var(--gold-light)",
                   letterSpacing: "-0.055em",
                   lineHeight: 1,
                 }}
@@ -101,11 +101,11 @@ export default function SongPrototypePage() {
                 <div>
                   <p
                     style={{
-                      margin: "0 0 8px",
-                      color: "var(--accent)",
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      letterSpacing: "0.12em",
+                      margin: "0 0 10px",
+                      color: "var(--gold-light)",
+                      fontSize: "14px",
+                      fontWeight: 800,
+                      letterSpacing: "0.13em",
                       textTransform: "uppercase",
                     }}
                   >
@@ -177,15 +177,15 @@ export default function SongPrototypePage() {
                         minHeight: "108px",
                         padding: "17px",
                         border: selected
-                          ? "1px solid var(--accent)"
-                          : "1px solid var(--border)",
+                          ? "2px solid var(--gold-light)"
+                          : "1px solid rgba(255, 255, 255, 0.18)",
                         borderRadius: "14px",
                         display: "flex",
                         alignItems: "flex-start",
                         gap: "12px",
                         background: selected
-                          ? "rgba(215, 227, 255, 0.09)"
-                          : "var(--surface)",
+                          ? "var(--accent-hover)"
+                          : "var(--accent)",
                         cursor: "pointer",
                         transition: "all 160ms ease",
                       }}
@@ -205,10 +205,8 @@ export default function SongPrototypePage() {
                         <strong
                           style={{
                             display: "block",
-                            color: selected
-                              ? "var(--accent)"
-                              : "var(--text-primary)",
-                            fontSize: "16px",
+                            color: "#ffffff",
+                            fontSize: "18px",
                           }}
                         >
                           {emotion.name}
@@ -217,9 +215,9 @@ export default function SongPrototypePage() {
                         <span
                           style={{
                             display: "block",
-                            marginTop: "6px",
-                            color: "var(--text-muted)",
-                            fontSize: "12px",
+                            marginTop: "7px",
+                            color: "rgba(255, 255, 255, 0.78)",
+                            fontSize: "14px",
                             lineHeight: 1.5,
                           }}
                         >

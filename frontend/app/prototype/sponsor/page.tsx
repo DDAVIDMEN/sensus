@@ -43,13 +43,13 @@ export default function SponsorPrototypePage() {
 
             <p
               style={{
-                position: "relative",
-                margin: 0,
-                color: "var(--text-muted)",
-                fontSize: "12px",
-                fontWeight: 700,
-                letterSpacing: "0.17em",
-                textTransform: "uppercase",
+                  position: "relative",
+                  margin: 0,
+                  color: "var(--gold-light)",
+                  fontSize: "15px",
+                  fontWeight: 800,
+                  letterSpacing: "0.17em",
+                  textTransform: "uppercase",
               }}
             >
               Esta experiencia es presentada por
@@ -59,23 +59,24 @@ export default function SponsorPrototypePage() {
               style={{
                 position: "relative",
                 width: "min(100%, 520px)",
-                minHeight: "210px",
+                minHeight: "150px",
                 margin: "42px 0",
-                padding: "30px",
-                border: "1px solid var(--border-light)",
+                padding: "22px",
                 borderRadius: "22px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "rgba(255, 255, 255, 0.96)",
-                color: "#111111",
+                background: "linear-gradient(145deg, #24105F, #32177C)",
+                border: "1px solid var(--gold-light)",
+                boxShadow: "0 15px 35px rgba(36,16,95,.35)",
+                color: "#ffffff",
               }}
             >
               <div>
                 <p
                   style={{
                     margin: 0,
-                    fontSize: "clamp(25px, 6vw, 48px)",
+                    fontSize: "clamp(25px,6vw,48px)",
                     fontWeight: 900,
                     letterSpacing: "-0.04em",
                   }}
@@ -86,7 +87,7 @@ export default function SponsorPrototypePage() {
                 <p
                   style={{
                     margin: "7px 0 0",
-                    color: "#555555",
+                    color: "rgba(255,255,255,.82)",
                     fontSize: "13px",
                     fontWeight: 700,
                     letterSpacing: "0.12em",
@@ -140,7 +141,7 @@ export default function SponsorPrototypePage() {
                 style={{
                   width: "64%",
                   height: "100%",
-                  background: "var(--accent)",
+                  background: "linear-gradient(90deg, var(--gold), var(--gold-light))",
                   borderRadius: "99px",
                 }}
               />
