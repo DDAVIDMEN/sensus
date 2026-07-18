@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Image from "next/image";
 
 const navigation = [
   { href: "/", label: "Inicio" },
@@ -19,7 +20,14 @@ export default function MainNavbar() {
     <header className="main-navbar">
       <div className="sensus-container navbar-content">
         <Link href="/" className="navbar-brand">
-          SENSUS
+          <Image
+            src="/logo.png"
+            alt="Sensus"
+            width={190}
+            height={55}
+            priority
+            className="navbar-logo"
+          />
         </Link>
 
         <nav className="navbar-links" aria-label="Navegación principal">
