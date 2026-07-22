@@ -21,3 +21,5 @@ export interface EmotionResponse {
   song_id: number;
   selected_emotion: string;
 }
+
+export type SongStatus = "locked" | "pending" | "answered";

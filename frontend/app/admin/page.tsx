@@ -61,29 +61,25 @@ function AdminContent() {
   }
 
   return (
-    <main
+  <AppShell
+    eyebrow="Control del concierto"
+    title="Panel administrador"
+    description="Controla las canciones disponibles y administra la experiencia del concierto."
+  >
+    <div
       style={{
-        maxWidth: "800px",
-        margin: "0 auto",
-        padding: "40px 16px",
-        color: "#f9fafb",
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        maxWidth: "900px",
       }}
     >
-      <h1 style={{ fontSize: "28px", marginBottom: "8px" }}>
-        Panel administrador
-      </h1>
-
-      <p style={{ color: "#9ca3af", marginBottom: "28px" }}>
-        Controla manualmente qué canciones están disponibles para votar.
-      </p>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
         {songs.map((song) => (
           <div
             key={song.id}
             style={{
-              backgroundColor: "#111827",
-              border: "1px solid #1f2937",
+              backgroundColor:   "linear-gradient(145deg, rgba(36,16,95,.68), rgba(17,17,19,.96))",
+              border: "1px solid rgba(255,255,255,.12)",
               borderRadius: "14px",
               padding: "18px",
               display: "flex",
@@ -125,8 +121,8 @@ function AdminContent() {
                   padding: "10px 16px",
                   borderRadius: "10px",
                   border: "none",
-                  backgroundColor: "#7f1d1d",
-                  color: "#fecaca",
+                  backgroundColor: "var(--sensus-blue)",
+                  color: "#ffffff",
                   fontWeight: 600,
                   cursor: updatingId === song.id ? "not-allowed" : "pointer",
                   minWidth: "120px",
@@ -142,8 +138,8 @@ function AdminContent() {
                   padding: "10px 16px",
                   borderRadius: "10px",
                   border: "none",
-                  backgroundColor: "#065f46",
-                  color: "#d1fae5",
+                  backgroundColor: "#591b24",
+                  color: "#ffffff",
                   fontWeight: 600,
                   cursor: updatingId === song.id ? "not-allowed" : "pointer",
                   minWidth: "120px",
@@ -154,8 +150,8 @@ function AdminContent() {
             )}
           </div>
         ))}
-      </div>
-    </main>
+    </div>
+  </AppShell>
   );
 }
 

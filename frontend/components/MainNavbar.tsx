@@ -23,8 +23,8 @@ export default function MainNavbar() {
           <Image
             src="/logo.png"
             alt="Sensus"
-            width={190}
-            height={55}
+            width={220}
+            height={70}
             priority
             className="navbar-logo"
           />

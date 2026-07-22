@@ -3,6 +3,7 @@ import AppShell from "@/components/AppShell";
 export default function AboutPage() {
   return (
     <AppShell
+      eyebrow="Nuestra historia"
       title="Sobre nosotros"
       description="Conoce a las personas y la motivación detrás de Sensus."
     >
@@ -14,7 +15,7 @@ export default function AboutPage() {
         }}
       >
         <article
-          className="sensus-card"
+          className="sensus-blue-card"
           style={{
             padding: "32px",
           }}
@@ -22,7 +23,7 @@ export default function AboutPage() {
           <p
             style={{
               margin: "0 0 12px",
-              color: "var(--accent)",
+              color: "var(--sensus-gold-light)",
               fontSize: "13px",
               fontWeight: 700,
               letterSpacing: "0.12em",
@@ -51,7 +52,7 @@ export default function AboutPage() {
         </article>
 
         <article
-          className="sensus-card"
+          className="sensus-blue-card"
           style={{
             padding: "32px",
           }}
@@ -59,7 +60,7 @@ export default function AboutPage() {
           <p
             style={{
               margin: "0 0 12px",
-              color: "var(--accent)",
+              color: "var(--sensus-gold-light)",
               fontSize: "13px",
               fontWeight: 700,
               letterSpacing: "0.12em",
@@ -88,7 +89,7 @@ export default function AboutPage() {
         </article>
 
         <article
-          className="sensus-card"
+          className="sensus-blue-card"
           style={{
             padding: "32px",
           }}
@@ -96,7 +97,7 @@ export default function AboutPage() {
           <p
             style={{
               margin: "0 0 12px",
-              color: "var(--accent)",
+              color: "var(--sensus-gold-light)",
               fontSize: "13px",
               fontWeight: 700,
               letterSpacing: "0.12em",

@@ -66,6 +66,7 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
+          className="sensus-input"
           style={{
             width: "100%",
             minHeight: "48px",
@@ -100,6 +101,7 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete="current-password"
+          className="sensus-input"
           style={{
             width: "100%",
             minHeight: "48px",

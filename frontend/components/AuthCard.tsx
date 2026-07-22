@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ReactNode } from "react";
+import SponsorsFooter from "@/components/SponsorsFooter";
 
 interface AuthCardProps {
   title: string;
@@ -24,11 +25,18 @@ export default function AuthCard({
       style={{
         minHeight: "100vh",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
+        flexDirection: "column",
       }}
     >
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "32px 20px",
+        }}
+      >
       <section
         className="sensus-card"
         style={{
@@ -101,6 +109,7 @@ export default function AuthCard({
           </Link>
         </p>
       </section>
+      </div>
     </main>
   );
 }

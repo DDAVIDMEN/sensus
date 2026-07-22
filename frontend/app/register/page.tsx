@@ -59,6 +59,7 @@ export default function RegisterPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
+          className="sensus-input"
           style={{
             width: "100%",
             minHeight: "48px",
@@ -94,6 +95,7 @@ export default function RegisterPage() {
           required
           minLength={6}
           autoComplete="new-password"
+          className="sensus-input"
           style={{
             width: "100%",
             minHeight: "48px",

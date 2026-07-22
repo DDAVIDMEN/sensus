@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import MainNavbar from "@/components/MainNavbar";
+import SponsorsFooter from "@/components/SponsorsFooter";
 
 const steps = [
   {
@@ -43,7 +44,7 @@ export default function HomePage() {
           <p
             style={{
               margin: "0 0 20px",
-              color: "var(--accent)",
+              color: "var(--gold-light)",
               fontSize: "13px",
               fontWeight: 700,
               letterSpacing: "0.18em",
@@ -171,7 +172,7 @@ export default function HomePage() {
             <p
               style={{
                 margin: "0 0 12px",
-                color: "var(--accent)",
+                color: "var(--gold-light)",
                 fontSize: "13px",
                 fontWeight: 700,
                 letterSpacing: "0.16em",
@@ -300,6 +301,7 @@ export default function HomePage() {
           <span>Experiencia musical y emocional</span>
         </div>
       </footer>
+      <SponsorsFooter />
     </main>
   );
 }   

@@ -77,8 +77,8 @@ a {
   background:
     radial-gradient(
       circle at 50% -10%,
-      rgba(215, 227, 255, 0.12),
-      transparent 32%
+      rgba(36, 16, 95, 0.28),
+      transparent 34%
     ),
     var(--background);
 }
@@ -107,13 +107,13 @@ a {
 
 .sensus-button-primary {
   background: var(--accent);
-  color: var(--accent-text);
-  border: 1px solid var(--accent);
+  color: #ffffff;
+  border: 1px solid var(--accent-hover);
 }
 
 .sensus-button-primary:hover {
   background: var(--accent-hover);
-  border-color: var(--accent-hover);
+  border-color: var(--gold-light);
   transform: translateY(-1px);
 }
 
@@ -135,6 +135,53 @@ a {
   border-radius: var(--radius-large);
   backdrop-filter: blur(14px);
 }
+/* =========================
+   Identidad visual Sensus
+========================= */
+
+.sensus-eyebrow {
+  margin: 0 0 10px;
+  color: var(--gold-light); 
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sensus-blue-card {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-medium);
+  background: linear-gradient(
+    145deg,
+    var(--accent),
+    var(--accent-hover)
+  );
+  color: #ffffff;
+}
+
+.sensus-blue-card p,
+.sensus-blue-card span {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.sensus-input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 15px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-primary);
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.sensus-input:focus {
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
 
 @media (max-width: 640px) {
   .sensus-container {
@@ -144,6 +191,11 @@ a {
   .sensus-button-primary,
   .sensus-button-secondary {
     width: 100%;
+  }
+
+  .navbar-logo,
+  .sensus-navbar-logo {
+    height: 32px;
   }
 }
 /* =========================
@@ -167,12 +219,18 @@ a {
 }
 
 .navbar-brand {
-  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
   text-decoration: none;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  white-space: nowrap;
+}
+
+.navbar-logo,
+.sensus-navbar-logo {
+  display: block;
+  width: auto;
+  height: 44px;
+  object-fit: contain;
 }
 
 .navbar-links {
@@ -281,7 +339,7 @@ a {
   letter-spacing: -0.045em;
 }
 
-.page-heading p {
+.page-heading > p:not(.sensus-eyebrow) {
   margin: 14px 0 0;
   color: var(--text-secondary);
   font-size: 17px;
@@ -377,13 +435,6 @@ a {
   gap: 28px;
 }
 
-.prototype-brand {
-  color: var(--text-primary);
-  text-decoration: none;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-}
 
 .prototype-navigation {
   flex: 1;
@@ -574,6 +625,58 @@ a {
   height: 44px;
   object-fit: contain;
 }
+/* =========================
+   Patrocinadores
+========================= */
+
+.sponsors-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  background: var(--accent);
+}
+
+.sponsors-footer-content {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.sponsors-footer-title {
+  margin: 0 0 24px;
+  color: var(--gold-light);
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.sponsors-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.sponsor-logo-card {
+  min-height: 76px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.82);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sponsor-logo-image {
+  display: block;
+  width: 100%;
+  max-width: 145px;
+  height: 52px;
+  object-fit: contain;
+}
 
 @media (max-width: 640px) {
   .prototype-logo {
@@ -586,5 +689,29 @@ a {
     text-align: center;
     font-size: 18px;
     margin-bottom: 6px;
+  }
+}
+@media (max-width: 900px) {
+  .sponsors-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .sponsors-footer-title {
+    font-size: 20px;
+  }
+
+  .sponsors-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sponsor-logo-card {
+    min-height: 68px;
+    font-size: 11px;
+  }
+
+  .sensus-eyebrow {
+    font-size: 13px;
   }
 }
