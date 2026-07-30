@@ -100,7 +100,7 @@ export default function AuthCard({
           <Link
             href={footerHref}
             style={{
-              color: "var(--accent)",
+              color: "var(--gold-light)",
               fontWeight: 700,
               textDecoration: "none",
             }}
