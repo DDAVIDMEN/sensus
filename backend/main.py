@@ -9,6 +9,7 @@ from app.routes.responses import router as responses_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.concert import ConcertState
 from app.routes.concert import router as concert_router
+from app.routes.results import router as results_router
 
 
 
@@ -28,6 +29,7 @@ app.include_router(auth_router)
 app.include_router(songs_router)
 app.include_router(responses_router)
 app.include_router(concert_router)
+app.include_router(results_router)
 
 @app.get("/")
 def root():
