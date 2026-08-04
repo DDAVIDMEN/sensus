@@ -26,6 +26,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] =
     useState("");
+  const [showPassword, setShowPassword] =
+    useState(false);
 
   const [error, setError] =
     useState<string | null>(null);
@@ -64,19 +66,16 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      // 1. Crear la cuenta.
       await api.post("/auth/register", {
         email: normalizedEmail,
         password,
       });
 
-      // 2. Iniciar sesión automáticamente.
       await login(
         normalizedEmail,
         password
       );
 
-      // 3. Enviar al usuario a la experiencia.
       router.replace("/songs");
       router.refresh();
     } catch (err) {
@@ -126,6 +125,7 @@ export default function RegisterPage() {
       footerHref="/login"
     >
       <form
+        id="sensus-register-form"
         onSubmit={handleSubmit}
         noValidate
         style={{
@@ -204,38 +204,89 @@ export default function RegisterPage() {
             Contraseña
           </label>
 
-          <input
-            id="register-password"
-            name="password"
-            type="password"
-            value={password}
-            onChange={(event) =>
-              setPassword(
-                event.target.value
-              )
-            }
-            required
-            minLength={6}
-            disabled={isSubmitting}
-            autoComplete="new-password"
-            className="sensus-input"
+          <div
             style={{
+              position: "relative",
               width: "100%",
-              minHeight: "48px",
-              padding: "0 14px",
-              borderRadius: "10px",
-              border:
-                "1px solid var(--border-light)",
-              backgroundColor:
-                "var(--surface)",
-              color:
-                "var(--text-primary)",
-              outline: "none",
-              opacity: isSubmitting
-                ? 0.7
-                : 1,
             }}
-          />
+          >
+            <input
+              id="register-password"
+              name="password"
+              type={
+                showPassword
+                  ? "text"
+                  : "password"
+              }
+              value={password}
+              onChange={(event) =>
+                setPassword(
+                  event.target.value
+                )
+              }
+              required
+              minLength={6}
+              disabled={isSubmitting}
+              autoComplete="new-password"
+              className="sensus-input"
+              style={{
+                width: "100%",
+                minHeight: "48px",
+                padding:
+                  "0 72px 0 14px",
+                borderRadius: "10px",
+                border:
+                  "1px solid var(--border-light)",
+                backgroundColor:
+                  "var(--surface)",
+                color:
+                  "var(--text-primary)",
+                outline: "none",
+                opacity: isSubmitting
+                  ? 0.7
+                  : 1,
+              }}
+            />
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowPassword(
+                  (previous) =>
+                    !previous
+                )
+              }
+              disabled={isSubmitting}
+              aria-label={
+                showPassword
+                  ? "Ocultar contraseña"
+                  : "Mostrar contraseña"
+              }
+              aria-pressed={showPassword}
+              style={{
+                position: "absolute",
+                top: "50%",
+                right: "14px",
+                transform:
+                  "translateY(-50%)",
+                padding: "6px",
+                border: "none",
+                color:
+                  "var(--gold-light)",
+                background:
+                  "transparent",
+                fontSize: "12px",
+                fontWeight: 700,
+                cursor: isSubmitting
+                  ? "not-allowed"
+                  : "pointer",
+              }}
+            >
+              {showPassword
+                ? "Ocultar"
+                : "Ver"}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -250,7 +301,8 @@ export default function RegisterPage() {
                 "rgba(248, 113, 113, 0.12)",
               border:
                 "1px solid rgba(248, 113, 113, 0.35)",
-              color: "var(--danger)",
+              color:
+                "var(--danger)",
               fontSize: "14px",
               lineHeight: 1.5,
             }}
@@ -261,6 +313,7 @@ export default function RegisterPage() {
 
         <button
           type="submit"
+          form="sensus-register-form"
           disabled={isSubmitting}
           className="sensus-button-primary"
           style={{

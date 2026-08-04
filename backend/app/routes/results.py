@@ -6,7 +6,12 @@ from app.database import SessionLocal
 from app.models.response import Response
 from app.models.song import Song
 from app.models.user import User
-from app.schemas.result import ParticipationResult
+from app.schemas.result import (
+    GlobalOptionResult,
+    GlobalResultsResponse,
+    GlobalSongResult,
+    ParticipationResult,
+)
 
 
 router = APIRouter(
@@ -89,4 +94,162 @@ def get_user_participation(
         minimum_required=MINIMUM_REQUIRED_RESPONSES,
         meets_minimum=meets_minimum,
         remaining_required=remaining_required,
+    )
+
+
+@router.get(
+    "/global",
+    response_model=GlobalResultsResponse,
+)
+def get_global_results(
+    db: Session = Depends(get_db),
+):
+    analyzable_songs = (
+        db.query(Song)
+        .filter(Song.is_analyzable.is_(True))
+        .order_by(
+            Song.display_order.asc().nullslast(),
+            Song.id.asc(),
+        )
+        .all()
+    )
+
+    total_analyzable_songs = len(
+        analyzable_songs
+    )
+
+    total_responses = (
+        db.query(func.count(Response.id))
+        .join(
+            Song,
+            Response.song_id == Song.id,
+        )
+        .filter(
+            Song.is_analyzable.is_(True)
+        )
+        .scalar()
+        or 0
+    )
+
+    total_participants = (
+        db.query(
+            func.count(
+                func.distinct(Response.user_id)
+            )
+        )
+        .join(
+            Song,
+            Response.song_id == Song.id,
+        )
+        .filter(
+            Song.is_analyzable.is_(True)
+        )
+        .scalar()
+        or 0
+    )
+
+    average_responses_per_participant = (
+        round(
+            total_responses
+            / total_participants,
+            2,
+        )
+        if total_participants > 0
+        else 0.0
+    )
+
+    songs_results: list[
+        GlobalSongResult
+    ] = []
+
+    for song in analyzable_songs:
+        responses = (
+            db.query(Response)
+            .filter(
+                Response.song_id == song.id
+            )
+            .all()
+        )
+
+        response_count = len(responses)
+
+        option_counts: dict[str, int] = {}
+
+        for response in responses:
+            option = (
+                response.selected_option
+                or response.selected_emotion
+            )
+
+            if not option:
+                continue
+
+            option_counts[option] = (
+                option_counts.get(option, 0)
+                + 1
+            )
+
+        sorted_options = sorted(
+            option_counts.items(),
+            key=lambda item: (
+                -item[1],
+                item[0].lower(),
+            ),
+        )
+
+        options = [
+            GlobalOptionResult(
+                option=option,
+                count=count,
+                percentage=round(
+                    (
+                        count
+                        / response_count
+                        * 100
+                    )
+                    if response_count > 0
+                    else 0,
+                    1,
+                ),
+            )
+            for option, count
+            in sorted_options
+        ]
+
+        top_option = (
+            sorted_options[0][0]
+            if sorted_options
+            else None
+        )
+
+        songs_results.append(
+            GlobalSongResult(
+                song_id=song.id,
+                title=song.title,
+                display_order=(
+                    song.display_order
+                ),
+                analysis_category=(
+                    song.analysis_category
+                ),
+                response_count=(
+                    response_count
+                ),
+                top_option=top_option,
+                options=options,
+            )
+        )
+
+    return GlobalResultsResponse(
+        total_participants=(
+            total_participants
+        ),
+        total_responses=total_responses,
+        total_analyzable_songs=(
+            total_analyzable_songs
+        ),
+        average_responses_per_participant=(
+            average_responses_per_participant
+        ),
+        songs=songs_results,
     )

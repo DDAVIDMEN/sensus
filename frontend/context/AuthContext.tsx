@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const loggedUser = {
       id: Number(payload.sub),
       email: payload.email,
+      is_admin: payload.is_admin,
     };
 
     saveSession(token, loggedUser);

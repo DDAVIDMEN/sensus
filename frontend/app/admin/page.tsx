@@ -11,7 +11,11 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppShell from "@/components/AppShell";
 import api from "@/services/api";
-import { ConcertStatus, Song } from "@/types";
+import {
+  ConcertStatus,
+  GlobalResultsResponse,
+  Song,
+} from "@/types";
 
 const SPONSOR_DURATION_SECONDS = 8;
 
@@ -37,8 +41,12 @@ const STATE_COLORS: Record<
 
 function AdminContent() {
   const [songs, setSongs] = useState<Song[]>([]);
+
   const [concert, setConcert] =
     useState<ConcertStatus | null>(null);
+
+  const [globalResults, setGlobalResults] =
+    useState<GlobalResultsResponse | null>(null);
 
   const [selectedSongId, setSelectedSongId] =
     useState<number | null>(null);
@@ -46,8 +54,14 @@ function AdminContent() {
   const [sponsorName, setSponsorName] =
     useState("Patrocinador Sensus");
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  const [isLoadingStats, setIsLoadingStats] =
+    useState(true);
+
+  const [isUpdating, setIsUpdating] =
+    useState(false);
 
   const [votingTimeLeft, setVotingTimeLeft] =
     useState(0);
@@ -58,35 +72,51 @@ function AdminContent() {
   const [errorMessage, setErrorMessage] =
     useState("");
 
+  const [statsErrorMessage, setStatsErrorMessage] =
+    useState("");
+
   const closeRequestSent = useRef(false);
 
-  const loadInitialData = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage("");
+  /*
+   * Carga inicial de canciones y estado
+   * del concierto.
+   */
+  const loadInitialData =
+    useCallback(async () => {
+      setIsLoading(true);
+      setErrorMessage("");
 
-    try {
-      const [songsResponse, concertResponse] =
-        await Promise.all([
+      try {
+        const [
+          songsResponse,
+          concertResponse,
+        ] = await Promise.all([
           api.get<Song[]>("/songs/"),
-          api.get<ConcertStatus>("/concert/state"),
+          api.get<ConcertStatus>(
+            "/concert/state"
+          ),
         ]);
 
-      setSongs(songsResponse.data);
-      setConcert(concertResponse.data);
-    } catch (error) {
-      console.error(
-        "Error cargando panel administrador:",
-        error
-      );
+        setSongs(songsResponse.data);
+        setConcert(concertResponse.data);
+      } catch (error) {
+        console.error(
+          "Error cargando panel administrador:",
+          error
+        );
 
-      setErrorMessage(
-        "No pudimos cargar el estado del concierto."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+        setErrorMessage(
+          "No pudimos cargar el estado del concierto."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }, []);
 
+  /*
+   * Consulta solamente el estado actual
+   * del concierto.
+   */
   const refreshConcertState =
     useCallback(async () => {
       try {
@@ -104,17 +134,55 @@ function AdminContent() {
       }
     }, []);
 
-  useEffect(() => {
-    loadInitialData();
-  }, [loadInitialData]);
+  /*
+   * Consulta las estadísticas globales.
+   */
+  const loadGlobalResults =
+    useCallback(async () => {
+      setIsLoadingStats(true);
+      setStatsErrorMessage("");
+
+      try {
+        const response =
+          await api.get<GlobalResultsResponse>(
+            "/results/global"
+          );
+
+        setGlobalResults(response.data);
+      } catch (error) {
+        console.error(
+          "Error cargando estadísticas del concierto:",
+          error
+        );
+
+        setStatsErrorMessage(
+          "No fue posible cargar las estadísticas del concierto."
+        );
+      } finally {
+        setIsLoadingStats(false);
+      }
+    }, []);
 
   /*
-   * Polling del estado actual.
+   * Carga inicial.
    */
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      refreshConcertState();
-    }, 2000);
+    loadInitialData();
+    loadGlobalResults();
+  }, [
+    loadInitialData,
+    loadGlobalResults,
+  ]);
+
+  /*
+   * Polling del estado del concierto
+   * cada dos segundos.
+   */
+  useEffect(() => {
+    const intervalId =
+      window.setInterval(() => {
+        refreshConcertState();
+      }, 2000);
 
     return () => {
       window.clearInterval(intervalId);
@@ -122,7 +190,22 @@ function AdminContent() {
   }, [refreshConcertState]);
 
   /*
-   * Contador de votación.
+   * Actualización de estadísticas
+   * cada cinco segundos.
+   */
+  useEffect(() => {
+    const intervalId =
+      window.setInterval(() => {
+        loadGlobalResults();
+      }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [loadGlobalResults]);
+
+  /*
+   * Contador visual de votación.
    */
   useEffect(() => {
     if (
@@ -134,14 +217,19 @@ function AdminContent() {
       return;
     }
 
+    const votingEndsAt =
+      concert.voting_ends_at;
+
     const calculateTimeLeft = () => {
       const endTime = new Date(
-        concert.voting_ends_at as string
+        votingEndsAt
       ).getTime();
 
       const remaining = Math.max(
         0,
-        Math.ceil((endTime - Date.now()) / 1000)
+        Math.ceil(
+          (endTime - Date.now()) / 1000
+        )
       );
 
       setVotingTimeLeft(remaining);
@@ -149,10 +237,11 @@ function AdminContent() {
 
     calculateTimeLeft();
 
-    const intervalId = window.setInterval(
-      calculateTimeLeft,
-      250
-    );
+    const intervalId =
+      window.setInterval(
+        calculateTimeLeft,
+        250
+      );
 
     return () => {
       window.clearInterval(intervalId);
@@ -160,12 +249,12 @@ function AdminContent() {
   }, [
     concert?.voting_open,
     concert?.voting_ends_at,
-  ]);
+]);
 
   /*
    * Cierre automático de la votación.
    */
-useEffect(() => {
+  useEffect(() => {
     if (
       !concert?.voting_open ||
       !concert.voting_ends_at
@@ -180,10 +269,11 @@ useEffect(() => {
       concert.voting_ends_at
     ).getTime();
 
-    const remainingMilliseconds = Math.max(
-      0,
-      endTime - Date.now()
-    );
+    const remainingMilliseconds =
+      Math.max(
+        0,
+        endTime - Date.now()
+      );
 
     const timeoutId = window.setTimeout(
       async () => {
@@ -200,6 +290,8 @@ useEffect(() => {
             );
 
           setConcert(response.data);
+
+          await loadGlobalResults();
         } catch (error) {
           console.error(
             "Error cerrando la votación automáticamente:",
@@ -218,8 +310,39 @@ useEffect(() => {
   }, [
     concert?.voting_open,
     concert?.voting_ends_at,
+    loadGlobalResults,
   ]);
 
+  /*
+   * Contador visual del patrocinador.
+   */
+  useEffect(() => {
+    if (
+      concert?.state !== "SPONSOR" ||
+      sponsorTimeLeft <= 0
+    ) {
+      return;
+    }
+
+    const timeoutId =
+      window.setTimeout(() => {
+        setSponsorTimeLeft(
+          (previous) =>
+            Math.max(0, previous - 1)
+        );
+      }, 1000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    concert?.state,
+    sponsorTimeLeft,
+  ]);
+
+  /*
+   * Canción que está sonando actualmente.
+   */
   const currentSong = useMemo(() => {
     if (!concert?.current_song_id) {
       return null;
@@ -228,11 +351,18 @@ useEffect(() => {
     return (
       songs.find(
         (song) =>
-          song.id === concert.current_song_id
+          song.id ===
+          concert.current_song_id
       ) ?? null
     );
-  }, [songs, concert?.current_song_id]);
+  }, [
+    songs,
+    concert?.current_song_id,
+  ]);
 
+  /*
+   * Canción seleccionada por el operador.
+   */
   const selectedSong = useMemo(() => {
     if (!selectedSongId) {
       return null;
@@ -240,21 +370,52 @@ useEffect(() => {
 
     return (
       songs.find(
-        (song) => song.id === selectedSongId
+        (song) =>
+          song.id === selectedSongId
       ) ?? null
     );
-  }, [songs, selectedSongId]);
+  }, [
+    songs,
+    selectedSongId,
+  ]);
 
+  /*
+   * Canción con mayor cantidad
+   * de respuestas.
+   */
+  const mostAnsweredSong =
+    useMemo(() => {
+      if (
+        !globalResults?.songs.length
+      ) {
+        return null;
+      }
+
+      const sortedSongs = [
+        ...globalResults.songs,
+      ].sort(
+        (firstSong, secondSong) =>
+          secondSong.response_count -
+          firstSong.response_count
+      );
+
+      return sortedSongs[0] ?? null;
+    }, [globalResults]);
+
+  /*
+   * Ejecuta cualquier acción del concierto.
+   */
   const runAction = async (
-    action: () => Promise<
-      { data: ConcertStatus }
-    >
+    action: () => Promise<{
+      data: ConcertStatus;
+    }>
   ) => {
     setIsUpdating(true);
     setErrorMessage("");
 
     try {
       const response = await action();
+
       setConcert(response.data);
     } catch (error) {
       console.error(
@@ -288,104 +449,92 @@ useEffect(() => {
     setSponsorTimeLeft(0);
   };
 
-  const handleOpenVoting = async () => {
-    await runAction(() =>
-      api.post<ConcertStatus>(
-        "/concert/voting/open"
-      )
-    );
-  };
-
-  const handleCloseVoting = async () => {
-    closeRequestSent.current = true;
-
-    await runAction(() =>
-      api.post<ConcertStatus>(
-        "/concert/voting/close"
-      )
-    );
-  };
-
-  const handleShowSponsor = async () => {
-    await runAction(() =>
-      api.post<ConcertStatus>(
-        "/concert/sponsor",
-        {
-          sponsor_name:
-            sponsorName.trim() ||
-            "Patrocinador Sensus",
-        }
-      )
-    );
-
-    setSponsorTimeLeft(
-      SPONSOR_DURATION_SECONDS
-    );
-  };
-
-  const handleWaitingStart = async () => {
-    await runAction(() =>
-      api.post<ConcertStatus>(
-        "/concert/waiting-start"
-      )
-    );
-
-    setSponsorTimeLeft(0);
-  };
-
-  const handleFinishConcert = async () => {
-    const confirmed = window.confirm(
-      "¿Seguro que deseas finalizar el concierto? Los usuarios verán inmediatamente la pantalla de resultados."
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    await runAction(() =>
-      api.post<ConcertStatus>(
-        "/concert/finish"
-      )
-    );
-  };
-
-  const handleRestartConcert = async () => {
-    const confirmed = window.confirm(
-      "¿Deseas regresar el concierto al estado inicial?"
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    await handleWaitingStart();
-  };
-
-  /*
-   * Contador visual del patrocinador.
-   *
-   * Al llegar a cero no inicia automáticamente
-   * una canción, porque el operador todavía debe
-   * elegir cuál será la siguiente.
-   */
-  useEffect(() => {
-    if (
-      concert?.state !== "SPONSOR" ||
-      sponsorTimeLeft <= 0
-    ) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setSponsorTimeLeft((previous) =>
-        Math.max(0, previous - 1)
+  const handleOpenVoting =
+    async () => {
+      await runAction(() =>
+        api.post<ConcertStatus>(
+          "/concert/voting/open"
+        )
       );
-    }, 1000);
-
-    return () => {
-      window.clearTimeout(timeoutId);
     };
-  }, [concert?.state, sponsorTimeLeft]);
+
+  const handleCloseVoting =
+    async () => {
+      closeRequestSent.current = true;
+
+      await runAction(() =>
+        api.post<ConcertStatus>(
+          "/concert/voting/close"
+        )
+      );
+
+      await loadGlobalResults();
+    };
+
+  const handleShowSponsor =
+    async () => {
+      await runAction(() =>
+        api.post<ConcertStatus>(
+          "/concert/sponsor",
+          {
+            sponsor_name:
+              sponsorName.trim() ||
+              "Patrocinador Sensus",
+          }
+        )
+      );
+
+      setSponsorTimeLeft(
+        SPONSOR_DURATION_SECONDS
+      );
+
+      await loadGlobalResults();
+    };
+
+  const handleWaitingStart =
+    async () => {
+      await runAction(() =>
+        api.post<ConcertStatus>(
+          "/concert/waiting-start"
+        )
+      );
+
+      setSponsorTimeLeft(0);
+    };
+
+  const handleFinishConcert =
+    async () => {
+      const confirmed =
+        window.confirm(
+          "¿Seguro que deseas finalizar el concierto? Los usuarios verán inmediatamente la pantalla de resultados."
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      await runAction(() =>
+        api.post<ConcertStatus>(
+          "/concert/finish"
+        )
+      );
+
+      await loadGlobalResults();
+    };
+
+  const handleRestartConcert =
+    async () => {
+      const confirmed =
+        window.confirm(
+          "¿Deseas regresar el concierto al estado inicial?"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      await handleWaitingStart();
+    };
 
   if (isLoading) {
     return (
@@ -399,8 +548,8 @@ useEffect(() => {
           style={styles.centerCard}
         >
           <p style={styles.secondaryText}>
-            Consultando canciones y estado del
-            concierto...
+            Consultando canciones y estado
+            del concierto...
           </p>
         </section>
       </AppShell>
@@ -442,6 +591,137 @@ useEffect(() => {
       description="Controla el flujo completo de la experiencia Sensus."
     >
       <div style={styles.layout}>
+        {/* ESTADÍSTICAS */}
+        <section
+          className="sensus-card"
+          style={styles.statisticsCard}
+        >
+          <div style={styles.sectionHeader}>
+            <div>
+              <p className="sensus-eyebrow">
+                Actividad del público
+              </p>
+
+              <h2 style={styles.sectionTitle}>
+                Estadísticas del concierto
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              disabled={isLoadingStats}
+              onClick={loadGlobalResults}
+              style={{
+                ...styles.refreshStatsButton,
+                cursor: isLoadingStats
+                  ? "wait"
+                  : "pointer",
+                opacity: isLoadingStats
+                  ? 0.65
+                  : 1,
+              }}
+            >
+              {isLoadingStats
+                ? "Actualizando..."
+                : "Actualizar"}
+            </button>
+          </div>
+
+          {isLoadingStats &&
+          !globalResults ? (
+            <p
+              style={{
+                ...styles.secondaryText,
+                marginTop: "24px",
+              }}
+            >
+              Cargando estadísticas del
+              público...
+            </p>
+          ) : statsErrorMessage &&
+            !globalResults ? (
+            <div style={{ marginTop: "24px" }}>
+              <p style={styles.errorBox}>
+                {statsErrorMessage}
+              </p>
+            </div>
+          ) : globalResults ? (
+            <>
+              <div
+                style={
+                  styles.adminMetricsGrid
+                }
+              >
+                <AdminMetric
+                  label="Participantes"
+                  value={`${globalResults.total_participants}`}
+                  description="Usuarios que han respondido al menos una canción."
+                />
+
+                <AdminMetric
+                  label="Respuestas registradas"
+                  value={`${globalResults.total_responses}`}
+                  description="Total de respuestas guardadas durante el concierto."
+                />
+
+                <AdminMetric
+                  label="Promedio por participante"
+                  value={`${globalResults.average_responses_per_participant}`}
+                  description="Promedio de canciones respondidas por cada usuario."
+                />
+
+                <AdminMetric
+                  label="Mayor participación"
+                  value={
+                    mostAnsweredSong &&
+                    mostAnsweredSong.response_count >
+                      0
+                      ? mostAnsweredSong.title
+                      : "Sin datos"
+                  }
+                  description={
+                    mostAnsweredSong &&
+                    mostAnsweredSong.response_count >
+                      0
+                      ? `${mostAnsweredSong.response_count} respuestas registradas.`
+                      : "Todavía no hay respuestas registradas."
+                  }
+                  compact
+                />
+              </div>
+
+              <div
+                style={
+                  styles.adminStatsFooter
+                }
+              >
+                <span>
+                  Actualización automática cada
+                  5 segundos
+                </span>
+
+                <span>
+                  {
+                    globalResults.total_responses
+                  }{" "}
+                  respuestas acumuladas
+                </span>
+              </div>
+
+              {statsErrorMessage && (
+                <p
+                  style={{
+                    ...styles.errorBox,
+                    marginTop: "16px",
+                  }}
+                >
+                  {statsErrorMessage}
+                </p>
+              )}
+            </>
+          ) : null}
+        </section>
+
         {/* ESTADO ACTUAL */}
         <section
           className="sensus-card"
@@ -469,7 +749,11 @@ useEffect(() => {
                 )}
               />
 
-              {STATE_LABELS[concert.state]}
+              {
+                STATE_LABELS[
+                  concert.state
+                ]
+              }
             </span>
           </div>
 
@@ -503,31 +787,41 @@ useEffect(() => {
             <StatusItem
               label="Patrocinador"
               value={
-                concert.sponsor_name || "—"
+                concert.sponsor_name ||
+                "—"
               }
             />
           </div>
 
           {concert.voting_open && (
             <div style={styles.timerPanel}>
-              <span style={styles.timerLabel}>
+              <span
+                style={styles.timerLabel}
+              >
                 Votación abierta
               </span>
 
-              <strong style={styles.timerValue}>
+              <strong
+                style={styles.timerValue}
+              >
                 00:
                 {String(
                   votingTimeLeft
                 ).padStart(2, "0")}
               </strong>
 
-              <div style={styles.progressTrack}>
+              <div
+                style={
+                  styles.progressTrack
+                }
+              >
                 <div
                   style={{
                     ...styles.progressFill,
                     width: `${Math.min(
                       100,
-                      (votingTimeLeft / 15) *
+                      (votingTimeLeft /
+                        15) *
                         100
                     )}%`,
                   }}
@@ -536,13 +830,18 @@ useEffect(() => {
             </div>
           )}
 
-          {concert.state === "SPONSOR" && (
+          {concert.state ===
+            "SPONSOR" && (
             <div style={styles.timerPanel}>
-              <span style={styles.timerLabel}>
+              <span
+                style={styles.timerLabel}
+              >
                 Pantalla de patrocinador
               </span>
 
-              <strong style={styles.timerValue}>
+              <strong
+                style={styles.timerValue}
+              >
                 {sponsorTimeLeft > 0
                   ? `00:${String(
                       sponsorTimeLeft
@@ -551,8 +850,9 @@ useEffect(() => {
               </strong>
 
               <p style={styles.timerHint}>
-                Selecciona la siguiente canción
-                cuando el escenario esté listo.
+                Selecciona la siguiente
+                canción cuando el escenario
+                esté listo.
               </p>
             </div>
           )}
@@ -570,19 +870,39 @@ useEffect(() => {
           <SmartControl
             concert={concert}
             songs={songs}
-            selectedSongId={selectedSongId}
+            selectedSongId={
+              selectedSongId
+            }
             selectedSong={selectedSong}
             sponsorName={sponsorName}
-            sponsorTimeLeft={sponsorTimeLeft}
+            sponsorTimeLeft={
+              sponsorTimeLeft
+            }
             isUpdating={isUpdating}
-            onSongSelect={setSelectedSongId}
-            onSponsorNameChange={setSponsorName}
-            onStartSong={handleStartSong}
-            onOpenVoting={handleOpenVoting}
-            onCloseVoting={handleCloseVoting}
-            onShowSponsor={handleShowSponsor}
-            onFinishConcert={handleFinishConcert}
-            onRestartConcert={handleRestartConcert}
+            onSongSelect={
+              setSelectedSongId
+            }
+            onSponsorNameChange={
+              setSponsorName
+            }
+            onStartSong={
+              handleStartSong
+            }
+            onOpenVoting={
+              handleOpenVoting
+            }
+            onCloseVoting={
+              handleCloseVoting
+            }
+            onShowSponsor={
+              handleShowSponsor
+            }
+            onFinishConcert={
+              handleFinishConcert
+            }
+            onRestartConcert={
+              handleRestartConcert
+            }
           />
 
           {errorMessage && (
@@ -592,7 +912,7 @@ useEffect(() => {
           )}
         </section>
 
-        {/* LISTADO GENERAL */}
+        {/* REPERTORIO */}
         <section
           className="sensus-card"
           style={styles.songsCard}
@@ -614,71 +934,88 @@ useEffect(() => {
           </div>
 
           <div style={styles.songList}>
-            {songs.map((song, index) => {
-              const isCurrent =
-                song.id ===
-                concert.current_song_id;
+            {songs.map(
+              (song, index) => {
+                const isCurrent =
+                  song.id ===
+                  concert.current_song_id;
 
-              const isSelected =
-                song.id === selectedSongId;
+                const isSelected =
+                  song.id ===
+                  selectedSongId;
 
-              return (
-                <button
-                  key={song.id}
-                  type="button"
-                  disabled={
-                    isUpdating ||
-                    concert.state ===
-                      "SONG_ACTIVE"
-                  }
-                  onClick={() =>
-                    setSelectedSongId(song.id)
-                  }
-                  style={styles.songRow(
-                    isCurrent,
-                    isSelected
-                  )}
-                >
-                  <span
-                    style={styles.songNumber}
-                  >
-                    {String(index + 1).padStart(
-                      2,
-                      "0"
+                return (
+                  <button
+                    key={song.id}
+                    type="button"
+                    disabled={
+                      isUpdating ||
+                      concert.state ===
+                        "SONG_ACTIVE"
+                    }
+                    onClick={() =>
+                      setSelectedSongId(
+                        song.id
+                      )
+                    }
+                    style={styles.songRow(
+                      isCurrent,
+                      isSelected
                     )}
-                  </span>
-
-                  <span style={styles.songInformation}>
-                    <strong
-                      style={styles.songTitle}
+                  >
+                    <span
+                      style={
+                        styles.songNumber
+                      }
                     >
-                      {song.title}
-                    </strong>
+                      {String(
+                        index + 1
+                      ).padStart(2, "0")}
+                    </span>
 
                     <span
-                      style={styles.songDescription}
+                      style={
+                        styles.songInformation
+                      }
                     >
-                      {song.description}
-                    </span>
-                  </span>
+                      <strong
+                        style={
+                          styles.songTitle
+                        }
+                      >
+                        {song.title}
+                      </strong>
 
-                  <span
-                    style={styles.songStatus}
-                  >
-                    {isCurrent
-                      ? "En vivo"
-                      : isSelected
-                        ? "Seleccionada"
-                        : "Disponible"}
-                  </span>
-                </button>
-              );
-            })}
+                      <span
+                        style={
+                          styles.songDescription
+                        }
+                      >
+                        {song.description}
+                      </span>
+                    </span>
+
+                    <span
+                      style={
+                        styles.songStatus
+                      }
+                    >
+                      {isCurrent
+                        ? "En vivo"
+                        : isSelected
+                          ? "Seleccionada"
+                          : "Disponible"}
+                    </span>
+                  </button>
+                );
+              }
+            )}
           </div>
         </section>
 
-        {/* CONTROL DE EMERGENCIA */}
-        {concert.state !== "FINISHED" && (
+        {/* FINALIZAR CONCIERTO */}
+        {concert.state !==
+          "FINISHED" && (
           <section
             className="sensus-card"
             style={styles.dangerCard}
@@ -688,22 +1025,34 @@ useEffect(() => {
                 Control del evento
               </p>
 
-              <h2 style={styles.dangerTitle}>
+              <h2
+                style={
+                  styles.dangerTitle
+                }
+              >
                 Finalizar concierto
               </h2>
 
-              <p style={styles.secondaryText}>
-                Esta acción enviará a todos los
-                asistentes a la pantalla final de
-                resultados.
+              <p
+                style={
+                  styles.secondaryText
+                }
+              >
+                Esta acción enviará a todos
+                los asistentes a la pantalla
+                final de resultados.
               </p>
             </div>
 
             <button
               type="button"
               disabled={isUpdating}
-              onClick={handleFinishConcert}
-              style={styles.dangerButton}
+              onClick={
+                handleFinishConcert
+              }
+              style={
+                styles.dangerButton
+              }
             >
               Finalizar concierto
             </button>
@@ -753,7 +1102,9 @@ function SmartControl({
   onFinishConcert,
   onRestartConcert,
 }: SmartControlProps) {
-  if (concert.state === "FINISHED") {
+  if (
+    concert.state === "FINISHED"
+  ) {
     return (
       <div style={styles.smartContent}>
         <h2 style={styles.actionTitle}>
@@ -761,10 +1112,10 @@ function SmartControl({
         </h2>
 
         <p style={styles.secondaryText}>
-          Todos los usuarios están viendo la
-          pantalla final. Puedes reiniciar el
-          estado cuando quieras preparar una nueva
-          ejecución.
+          Todos los usuarios están viendo
+          la pantalla final. Puedes
+          reiniciar el estado cuando quieras
+          preparar una nueva ejecución.
         </p>
 
         <button
@@ -782,7 +1133,8 @@ function SmartControl({
   }
 
   if (
-    concert.state === "WAITING_START" ||
+    concert.state ===
+      "WAITING_START" ||
     concert.state === "SPONSOR"
   ) {
     const isSponsor =
@@ -812,7 +1164,9 @@ function SmartControl({
               event.target.value;
 
             onSongSelect(
-              value ? Number(value) : null
+              value
+                ? Number(value)
+                : null
             );
           }}
           style={styles.select}
@@ -832,15 +1186,23 @@ function SmartControl({
         </select>
 
         {selectedSong && (
-          <div style={styles.selectionPreview}>
+          <div
+            style={
+              styles.selectionPreview
+            }
+          >
             <span
-              style={styles.selectionLabel}
+              style={
+                styles.selectionLabel
+              }
             >
               Próxima canción
             </span>
 
             <strong
-              style={styles.selectionTitle}
+              style={
+                styles.selectionTitle
+              }
             >
               {selectedSong.title}
             </strong>
@@ -884,7 +1246,8 @@ function SmartControl({
   }
 
   if (
-    concert.state === "SONG_ACTIVE" &&
+    concert.state ===
+      "SONG_ACTIVE" &&
     concert.voting_open
   ) {
     return (
@@ -894,8 +1257,9 @@ function SmartControl({
         </h2>
 
         <p style={styles.secondaryText}>
-          La votación se cerrará automáticamente
-          cuando el contador llegue a cero.
+          La votación se cerrará
+          automáticamente cuando el contador
+          llegue a cero.
         </p>
 
         <button
@@ -913,7 +1277,8 @@ function SmartControl({
   }
 
   if (
-    concert.state === "SONG_ACTIVE" &&
+    concert.state ===
+      "SONG_ACTIVE" &&
     !concert.voting_open &&
     !concert.voting_ends_at
   ) {
@@ -970,15 +1335,6 @@ function SmartControl({
     );
   }
 
-  /*
-   * Este bloque se usa después de que se cerró
-   * una votación. En la respuesta actual del
-   * backend, voting_ends_at vuelve a null, por lo
-   * que también puede coincidir con el estado
-   * anterior. Por eso dejamos disponible el botón
-   * de patrocinador dentro del mismo control.
-   */
-
   return (
     <div style={styles.smartContent}>
       <h2 style={styles.actionTitle}>
@@ -986,8 +1342,8 @@ function SmartControl({
       </h2>
 
       <p style={styles.secondaryText}>
-        Muestra el patrocinador antes de comenzar
-        la siguiente canción.
+        Muestra el patrocinador antes de
+        comenzar la siguiente canción.
       </p>
 
       <input
@@ -1032,13 +1388,68 @@ function StatusItem({
 }) {
   return (
     <div style={styles.statusItem}>
-      <span style={styles.statusItemLabel}>
+      <span
+        style={
+          styles.statusItemLabel
+        }
+      >
         {label}
       </span>
 
-      <strong style={styles.statusItemValue}>
+      <strong
+        style={
+          styles.statusItemValue
+        }
+      >
         {value}
       </strong>
+    </div>
+  );
+}
+
+function AdminMetric({
+  label,
+  value,
+  description,
+  compact = false,
+}: {
+  label: string;
+  value: string;
+  description: string;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      style={
+        styles.adminMetricCard
+      }
+    >
+      <span
+        style={
+          styles.adminMetricLabel
+        }
+      >
+        {label}
+      </span>
+
+      <strong
+        style={{
+          ...styles.adminMetricValue,
+          fontSize: compact
+            ? "clamp(18px, 3vw, 25px)"
+            : "clamp(30px, 5vw, 42px)",
+        }}
+      >
+        {value}
+      </strong>
+
+      <p
+        style={
+          styles.adminMetricDescription
+        }
+      >
+        {description}
+      </p>
     </div>
   );
 }
@@ -1060,13 +1471,21 @@ const styles = {
     textAlign: "center",
   } as React.CSSProperties,
 
+  statisticsCard: {
+    width: "100%",
+    padding: "clamp(24px, 5vw, 38px)",
+    borderColor:
+      "rgba(201, 150, 36, 0.24)",
+  } as React.CSSProperties,
+
   statusCard: {
     padding: "clamp(24px, 5vw, 38px)",
   } as React.CSSProperties,
 
   controlCard: {
     padding: "clamp(24px, 5vw, 38px)",
-    borderColor: "rgba(201, 150, 36, 0.28)",
+    borderColor:
+      "rgba(201, 150, 36, 0.28)",
   } as React.CSSProperties,
 
   songsCard: {
@@ -1084,8 +1503,79 @@ const styles = {
   sectionTitle: {
     margin: 0,
     color: "var(--text-primary)",
-    fontSize: "clamp(24px, 4vw, 34px)",
+    fontSize:
+      "clamp(24px, 4vw, 34px)",
     letterSpacing: "-0.035em",
+  } as React.CSSProperties,
+
+  adminMetricsGrid: {
+    marginTop: "28px",
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(210px, 1fr))",
+    gap: "12px",
+  } as React.CSSProperties,
+
+  adminMetricCard: {
+    minHeight: "150px",
+    padding: "20px",
+    border:
+      "1px solid var(--border)",
+    borderRadius: "14px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    background: "var(--surface)",
+  } as React.CSSProperties,
+
+  adminMetricLabel: {
+    display: "block",
+    color: "var(--gold-light)",
+    fontSize: "10px",
+    fontWeight: 800,
+    letterSpacing: "0.09em",
+    textTransform: "uppercase",
+  } as React.CSSProperties,
+
+  adminMetricValue: {
+    display: "block",
+    marginTop: "13px",
+    overflowWrap: "anywhere",
+    color: "#ffffff",
+    lineHeight: 1.05,
+    letterSpacing: "-0.035em",
+  } as React.CSSProperties,
+
+  adminMetricDescription: {
+    margin: "14px 0 0",
+    color: "var(--text-muted)",
+    fontSize: "12px",
+    lineHeight: 1.55,
+  } as React.CSSProperties,
+
+  refreshStatsButton: {
+    minHeight: "42px",
+    padding: "0 15px",
+    border:
+      "1px solid var(--border-light)",
+    borderRadius: "10px",
+    color: "#ffffff",
+    background: "var(--surface)",
+    fontSize: "13px",
+    fontWeight: 700,
+  } as React.CSSProperties,
+
+  adminStatsFooter: {
+    marginTop: "18px",
+    paddingTop: "16px",
+    borderTop:
+      "1px solid var(--border)",
+    display: "flex",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: "10px",
+    color: "var(--text-muted)",
+    fontSize: "11px",
   } as React.CSSProperties,
 
   stateBadge: (
@@ -1095,7 +1585,8 @@ const styles = {
     display: "inline-flex",
     alignItems: "center",
     gap: "8px",
-    border: `1px solid ${stateColor}55`,
+    border:
+      `1px solid ${stateColor}55`,
     borderRadius: "999px",
     color: stateColor,
     background: `${stateColor}16`,
@@ -1112,7 +1603,8 @@ const styles = {
     height: "8px",
     borderRadius: "50%",
     background: stateColor,
-    boxShadow: `0 0 14px ${stateColor}`,
+    boxShadow:
+      `0 0 14px ${stateColor}`,
   }),
 
   statusGrid: {
@@ -1125,7 +1617,8 @@ const styles = {
 
   statusItem: {
     padding: "16px",
-    border: "1px solid var(--border)",
+    border:
+      "1px solid var(--border)",
     borderRadius: "12px",
     background: "var(--surface)",
   } as React.CSSProperties,
@@ -1148,7 +1641,8 @@ const styles = {
   timerPanel: {
     marginTop: "20px",
     padding: "20px",
-    border: "1px solid rgba(201, 150, 36, 0.25)",
+    border:
+      "1px solid rgba(201, 150, 36, 0.25)",
     borderRadius: "14px",
     textAlign: "center",
     background: "var(--gold-soft)",
@@ -1167,8 +1661,10 @@ const styles = {
     display: "block",
     marginTop: "8px",
     color: "#ffffff",
-    fontSize: "clamp(38px, 8vw, 64px)",
-    fontVariantNumeric: "tabular-nums",
+    fontSize:
+      "clamp(38px, 8vw, 64px)",
+    fontVariantNumeric:
+      "tabular-nums",
   } as React.CSSProperties,
 
   timerHint: {
@@ -1183,7 +1679,8 @@ const styles = {
     margin: "18px auto 0",
     borderRadius: "99px",
     overflow: "hidden",
-    background: "rgba(255, 255, 255, 0.12)",
+    background:
+      "rgba(255, 255, 255, 0.12)",
   } as React.CSSProperties,
 
   progressFill: {
@@ -1191,7 +1688,8 @@ const styles = {
     borderRadius: "99px",
     background:
       "linear-gradient(90deg, var(--gold), var(--gold-light))",
-    transition: "width 250ms linear",
+    transition:
+      "width 250ms linear",
   } as React.CSSProperties,
 
   smartContent: {
@@ -1205,7 +1703,8 @@ const styles = {
   actionTitle: {
     margin: 0,
     color: "var(--text-primary)",
-    fontSize: "clamp(24px, 4vw, 34px)",
+    fontSize:
+      "clamp(24px, 4vw, 34px)",
     letterSpacing: "-0.035em",
   } as React.CSSProperties,
 
@@ -1220,7 +1719,8 @@ const styles = {
     width: "100%",
     minHeight: "48px",
     padding: "0 14px",
-    border: "1px solid var(--border-light)",
+    border:
+      "1px solid var(--border-light)",
     borderRadius: "10px",
     color: "#ffffff",
     background: "#111113",
@@ -1238,7 +1738,8 @@ const styles = {
     width: "100%",
     minHeight: "48px",
     padding: "0 14px",
-    border: "1px solid var(--border-light)",
+    border:
+      "1px solid var(--border-light)",
     borderRadius: "10px",
     color: "#ffffff",
     background: "#111113",
@@ -1249,7 +1750,8 @@ const styles = {
   selectionPreview: {
     width: "100%",
     padding: "15px",
-    border: "1px solid rgba(201, 150, 36, 0.24)",
+    border:
+      "1px solid rgba(201, 150, 36, 0.24)",
     borderRadius: "12px",
     background: "var(--gold-soft)",
   } as React.CSSProperties,
@@ -1272,7 +1774,8 @@ const styles = {
   secondaryButton: {
     minHeight: "44px",
     padding: "0 18px",
-    border: "1px solid var(--border-light)",
+    border:
+      "1px solid var(--border-light)",
     borderRadius: "10px",
     color: "#ffffff",
     background: "transparent",
@@ -1289,7 +1792,8 @@ const styles = {
 
   songCount: {
     padding: "7px 11px",
-    border: "1px solid var(--border)",
+    border:
+      "1px solid var(--border)",
     borderRadius: "999px",
     color: "var(--text-muted)",
     fontSize: "12px",
@@ -1364,7 +1868,8 @@ const styles = {
 
   dangerCard: {
     padding: "24px",
-    borderColor: "rgba(248, 113, 113, 0.28)",
+    borderColor:
+      "rgba(248, 113, 113, 0.28)",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -1381,10 +1886,12 @@ const styles = {
   dangerButton: {
     minHeight: "44px",
     padding: "0 18px",
-    border: "1px solid rgba(248, 113, 113, 0.45)",
+    border:
+      "1px solid rgba(248, 113, 113, 0.45)",
     borderRadius: "10px",
     color: "#fca5a5",
-    background: "rgba(248, 113, 113, 0.1)",
+    background:
+      "rgba(248, 113, 113, 0.1)",
     fontWeight: 800,
     cursor: "pointer",
   } as React.CSSProperties,
@@ -1393,10 +1900,12 @@ const styles = {
     width: "100%",
     margin: "4px 0 0",
     padding: "13px 15px",
-    border: "1px solid rgba(248, 113, 113, 0.35)",
+    border:
+      "1px solid rgba(248, 113, 113, 0.35)",
     borderRadius: "10px",
     color: "#fca5a5",
-    background: "rgba(248, 113, 113, 0.1)",
+    background:
+      "rgba(248, 113, 113, 0.1)",
     fontSize: "14px",
     lineHeight: 1.55,
   } as React.CSSProperties,
@@ -1404,7 +1913,7 @@ const styles = {
 
 export default function AdminPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute adminOnly>
       <AdminContent />
     </ProtectedRoute>
   );

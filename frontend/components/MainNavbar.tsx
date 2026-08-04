@@ -52,9 +52,12 @@ export default function MainNavbar() {
         <div className="navbar-actions">
           {isAuthenticated ? (
             <>
-              <Link href="/admin" className="navbar-admin-link">
-                Panel admin
-              </Link>
+              {/* Muestra el enlace solo si el usuario existe y es admin */}
+              {user?.is_admin && (
+                <Link href="/admin" className="navbar-admin-link">
+                  Panel admin
+                </Link>
+              )}
 
               <div className="navbar-user">
                 <span>{user?.email}</span>

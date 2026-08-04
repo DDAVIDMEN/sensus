@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+
 import MainNavbar from "@/components/MainNavbar";
 import SponsorsFooter from "@/components/SponsorsFooter";
+import { useAuth } from "@/context/AuthContext";
 
 const steps = [
   {
@@ -25,6 +29,11 @@ const steps = [
 ];
 
 export default function HomePage() {
+  const {
+    isAuthenticated,
+    isLoading,
+  } = useAuth();
+
   return (
     <main className="sensus-page">
       <MainNavbar />
@@ -35,7 +44,8 @@ export default function HomePage() {
           minHeight: "calc(100vh - 84px)",
           padding: "60px 0 100px",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(310px, 1fr))",
           alignItems: "center",
           gap: "64px",
         }}
@@ -57,7 +67,6 @@ export default function HomePage() {
           <h1
             style={{
               margin: 0,
-             
               fontSize: "clamp(48px, 7vw, 86px)",
               lineHeight: 0.98,
               letterSpacing: "-0.055em",
@@ -70,34 +79,56 @@ export default function HomePage() {
 
           <p
             style={{
-              
               margin: "30px 0 0",
               color: "var(--text-secondary)",
               fontSize: "clamp(17px, 2vw, 20px)",
               lineHeight: 1.7,
             }}
           >
-            Vive <strong>Sinfonía de Piedra y Luz</strong> y descubre cómo
-            cada obra resuena contigo a través de una experiencia que une
-            música, emoción y reflexión.
+            Vive{" "}
+            <strong>
+              Sinfonía de Piedra y Luz
+            </strong>{" "}
+            y descubre cómo cada obra resuena
+            contigo a través de una experiencia
+            que une música, emoción y reflexión.
           </p>
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "14px",
-              marginTop: "38px",
-            }}
-          >
-            <Link href="/login" className="sensus-button-primary">
-              Ingresar a la experiencia
-            </Link>
+          {!isLoading && (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "14px",
+                marginTop: "38px",
+              }}
+            >
+              {isAuthenticated ? (
+                <Link
+                  href="/songs"
+                  className="sensus-button-primary"
+                >
+                  Continuar experiencia
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="sensus-button-primary"
+                  >
+                    Ingresar a la experiencia
+                  </Link>
 
-            <Link href="/register" className="sensus-button-secondary">
-              Crear cuenta
-            </Link>
-          </div>
+                  <Link
+                    href="/register"
+                    className="sensus-button-secondary"
+                  >
+                    Crear cuenta
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
 
           <p
             style={{
@@ -107,7 +138,8 @@ export default function HomePage() {
               lineHeight: 1.6,
             }}
           >
-            No existen respuestas correctas. Solo emociones auténticas.
+            No existen respuestas correctas.
+            Solo emociones auténticas.
           </p>
         </div>
 
@@ -124,6 +156,7 @@ export default function HomePage() {
           }}
         >
           <div
+            aria-hidden="true"
             style={{
               position: "absolute",
               inset: 0,
@@ -152,9 +185,12 @@ export default function HomePage() {
       <section
         id="como-funciona"
         style={{
-          borderTop: "1px solid var(--border)",
-          borderBottom: "1px solid var(--border)",
-          background: "var(--background-soft)",
+          borderTop:
+            "1px solid var(--border)",
+          borderBottom:
+            "1px solid var(--border)",
+          background:
+            "var(--background-soft)",
         }}
       >
         <div
@@ -165,7 +201,6 @@ export default function HomePage() {
         >
           <div
             style={{
-              
               marginBottom: "52px",
             }}
           >
@@ -185,7 +220,8 @@ export default function HomePage() {
             <h2
               style={{
                 margin: 0,
-                fontSize: "clamp(36px, 5vw, 58px)",
+                fontSize:
+                  "clamp(36px, 5vw, 58px)",
                 letterSpacing: "-0.045em",
               }}
             >
@@ -196,7 +232,8 @@ export default function HomePage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(240px, 1fr))",
               gap: "18px",
             }}
           >
@@ -212,7 +249,8 @@ export default function HomePage() {
                 <span
                   style={{
                     display: "block",
-                    color: "var(--text-muted)",
+                    color:
+                      "var(--text-muted)",
                     fontSize: "13px",
                     fontWeight: 700,
                     letterSpacing: "0.12em",
@@ -234,7 +272,8 @@ export default function HomePage() {
                 <p
                   style={{
                     margin: 0,
-                    color: "var(--text-secondary)",
+                    color:
+                      "var(--text-secondary)",
                     lineHeight: 1.7,
                   }}
                 >
@@ -257,31 +296,53 @@ export default function HomePage() {
           style={{
             margin: 0,
             color: "var(--text-secondary)",
-            fontSize: "clamp(21px, 3vw, 32px)",
+            fontSize:
+              "clamp(21px, 3vw, 32px)",
             lineHeight: 1.6,
           }}
         >
           Cada persona escucha la misma música.
           <br />
-          <strong style={{ color: "var(--text-primary)" }}>
-            Ninguna persona la siente de la misma manera.
+
+          <strong
+            style={{
+              color:
+                "var(--text-primary)",
+            }}
+          >
+            Ninguna persona la siente de la
+            misma manera.
           </strong>
         </p>
 
-        <Link
-          href="/register"
-          className="sensus-button-primary"
-          style={{
-            marginTop: "36px",
-          }}
-        >
-          Formar parte de la experiencia
-        </Link>
+        {!isLoading &&
+          (isAuthenticated ? (
+            <Link
+              href="/songs"
+              className="sensus-button-primary"
+              style={{
+                marginTop: "36px",
+              }}
+            >
+              Continuar experiencia
+            </Link>
+          ) : (
+            <Link
+              href="/register"
+              className="sensus-button-primary"
+              style={{
+                marginTop: "36px",
+              }}
+            >
+              Formar parte de la experiencia
+            </Link>
+          ))}
       </section>
 
       <footer
         style={{
-          borderTop: "1px solid var(--border)",
+          borderTop:
+            "1px solid var(--border)",
         }}
       >
         <div
@@ -290,18 +351,25 @@ export default function HomePage() {
             minHeight: "100px",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent:
+              "space-between",
             flexWrap: "wrap",
             gap: "18px",
             color: "var(--text-muted)",
             fontSize: "13px",
           }}
         >
-          <span>Sensus · Sinfonía de Piedra y Luz</span>
-          <span>Experiencia musical y emocional</span>
+          <span>
+            Sensus · Sinfonía de Piedra y Luz
+          </span>
+
+          <span>
+            Experiencia musical y emocional
+          </span>
         </div>
       </footer>
+
       <SponsorsFooter />
     </main>
   );
-}   
+}
