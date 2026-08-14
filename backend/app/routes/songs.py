@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
+from app.dependencies import get_current_admin
 from app.models.song import Song
+from app.models.user import User
 from app.schemas.song import SongCreate, SongResponse
 
 
@@ -28,6 +30,7 @@ def get_db():
 def create_song(
     song_data: SongCreate,
     db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
 ):
     new_song = Song(
         title=song_data.title,
@@ -88,6 +91,7 @@ def get_analyzable_songs(
 def unlock_song(
     song_id: int,
     db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
 ):
     song = (
         db.query(Song)
@@ -116,6 +120,7 @@ def unlock_song(
 def lock_song(
     song_id: int,
     db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
 ):
     song = (
         db.query(Song)

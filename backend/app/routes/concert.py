@@ -1,17 +1,30 @@
-from datetime import datetime, timedelta, timezone
+from datetime import (
+    datetime,
+    timedelta,
+    timezone,
+)
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+)
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
+from app.dependencies import get_current_admin
 from app.models.concert import ConcertState
 from app.models.song import Song
-from app.schemas.concert import ConcertStateResponse, SponsorStateRequest
+from app.models.user import User
+from app.schemas.concert import (
+    ConcertStateResponse,
+    SponsorStateRequest,
+)
 
 
 router = APIRouter(
     prefix="/concert",
-    tags=["Concert"]
+    tags=["Concert"],
 )
 
 
@@ -24,8 +37,14 @@ def get_db():
         db.close()
 
 
-def get_or_create_concert_state(db: Session) -> ConcertState:
-    concert = db.query(ConcertState).filter(ConcertState.id == 1).first()
+def get_or_create_concert_state(
+    db: Session,
+) -> ConcertState:
+    concert = (
+        db.query(ConcertState)
+        .filter(ConcertState.id == 1)
+        .first()
+    )
 
     if concert:
         return concert
@@ -46,20 +65,33 @@ def get_or_create_concert_state(db: Session) -> ConcertState:
     return concert
 
 
+
+ # Esta ruta sigue pública porque los usuarios
+ # necesitan consultar el estado del concierto.
+ 
 @router.get(
     "/state",
-    response_model=ConcertStateResponse
+    response_model=ConcertStateResponse,
 )
-def get_concert_state(db: Session = Depends(get_db)):
+def get_concert_state(
+    db: Session = Depends(get_db),
+):
     return get_or_create_concert_state(db)
 
 
 @router.post(
     "/waiting-start",
-    response_model=ConcertStateResponse
+    response_model=ConcertStateResponse,
 )
-def set_waiting_start(db: Session = Depends(get_db)):
-    concert = get_or_create_concert_state(db)
+def set_waiting_start(
+    db: Session = Depends(get_db),
+    admin: User = Depends(
+        get_current_admin
+    ),
+):
+    concert = get_or_create_concert_state(
+        db
+    )
 
     concert.state = "WAITING_START"
     concert.current_song_id = None
@@ -75,21 +107,30 @@ def set_waiting_start(db: Session = Depends(get_db)):
 
 @router.post(
     "/songs/{song_id}/start",
-    response_model=ConcertStateResponse
+    response_model=ConcertStateResponse,
 )
 def start_song(
     song_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin: User = Depends(
+        get_current_admin
+    ),
 ):
-    song = db.query(Song).filter(Song.id == song_id).first()
+    song = (
+        db.query(Song)
+        .filter(Song.id == song_id)
+        .first()
+    )
 
     if not song:
         raise HTTPException(
             status_code=404,
-            detail="Canción no encontrada"
+            detail="Canción no encontrada",
         )
 
-    concert = get_or_create_concert_state(db)
+    concert = get_or_create_concert_state(
+        db
+    )
 
     concert.state = "SONG_ACTIVE"
     concert.current_song_id = song.id
@@ -105,20 +146,28 @@ def start_song(
 
 @router.post(
     "/voting/open",
-    response_model=ConcertStateResponse
+    response_model=ConcertStateResponse,
 )
-def open_voting(db: Session = Depends(get_db)):
-    concert = get_or_create_concert_state(db)
+def open_voting(
+    db: Session = Depends(get_db),
+    admin: User = Depends(
+        get_current_admin
+    ),
+):
+    concert = get_or_create_concert_state(
+        db
+    )
 
     if concert.state != "SONG_ACTIVE":
         raise HTTPException(
             status_code=400,
-            detail="No hay una canción activa"
+            detail="No hay una canción activa",
         )
 
     concert.voting_open = True
     concert.voting_ends_at = (
-        datetime.now(timezone.utc) + timedelta(seconds=15)
+        datetime.now(timezone.utc)
+        + timedelta(seconds=15)
     )
 
     db.commit()
@@ -129,10 +178,17 @@ def open_voting(db: Session = Depends(get_db)):
 
 @router.post(
     "/voting/close",
-    response_model=ConcertStateResponse
+    response_model=ConcertStateResponse,
 )
-def close_voting(db: Session = Depends(get_db)):
-    concert = get_or_create_concert_state(db)
+def close_voting(
+    db: Session = Depends(get_db),
+    admin: User = Depends(
+        get_current_admin
+    ),
+):
+    concert = get_or_create_concert_state(
+        db
+    )
 
     concert.voting_open = False
     concert.voting_ends_at = None
@@ -145,18 +201,25 @@ def close_voting(db: Session = Depends(get_db)):
 
 @router.post(
     "/sponsor",
-    response_model=ConcertStateResponse
+    response_model=ConcertStateResponse,
 )
 def show_sponsor(
     sponsor_data: SponsorStateRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin: User = Depends(
+        get_current_admin
+    ),
 ):
-    concert = get_or_create_concert_state(db)
+    concert = get_or_create_concert_state(
+        db
+    )
 
     concert.state = "SPONSOR"
     concert.voting_open = False
     concert.voting_ends_at = None
-    concert.sponsor_name = sponsor_data.sponsor_name
+    concert.sponsor_name = (
+        sponsor_data.sponsor_name
+    )
 
     db.commit()
     db.refresh(concert)
@@ -166,10 +229,17 @@ def show_sponsor(
 
 @router.post(
     "/finish",
-    response_model=ConcertStateResponse
+    response_model=ConcertStateResponse,
 )
-def finish_concert(db: Session = Depends(get_db)):
-    concert = get_or_create_concert_state(db)
+def finish_concert(
+    db: Session = Depends(get_db),
+    admin: User = Depends(
+        get_current_admin
+    ),
+):
+    concert = get_or_create_concert_state(
+        db
+    )
 
     concert.state = "FINISHED"
     concert.current_song_id = None

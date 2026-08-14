@@ -1,17 +1,76 @@
-# Python
-backend/.venv/
-__pycache__/
-*.pyc
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+!.env.example
 
-# Node
+**/.env
+**/.env.*
+!**/.env.example
+
+# =========================
+# Python / FastAPI
+# =========================
+backend/.venv/
+.venv/
+venv/
+env/
+
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+.pytest_cache/
+.mypy_cache/
+
+# =========================
+# Node / Next.js
+# =========================
 frontend/node_modules/
+node_modules/
+
+frontend/.next/
 .next/
 
-# Env
-.env
+frontend/out/
+out/
 
-# VSCode
+frontend/build/
+build/
+
+# =========================
+# Database backups
+# =========================
+*.dump
+*.backup
+*.sql
+backups/
+
+# =========================
+# Vercel
+# =========================
+.vercel/
+frontend/.vercel/
+
+# =========================
+# IDE
+# =========================
 .vscode/
+.idea/
 
+# =========================
 # OS
+# =========================
 .DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
