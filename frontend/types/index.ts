@@ -9,11 +9,28 @@ export interface AuthTokens {
   token_type: string;
 }
 
+export interface SongOption {
+  id: number;
+  option_order: number;
+  title: string;
+  subtitle: string | null;
+  description: string | null;
+  value: number;
+}
+
 export interface Song {
   id: number;
   title: string;
   description: string;
   is_unlocked: boolean;
+
+  analysis_category: string | null;
+  question_text: string | null;
+  display_order: number | null;
+  duration_seconds: number | null;
+  is_analyzable: boolean;
+
+  options: SongOption[];
 }
 
 export interface EmotionResponse {
@@ -21,6 +38,8 @@ export interface EmotionResponse {
   user_id: number;
   song_id: number;
   selected_emotion: string;
+  selected_option: string | null;
+  option_value: number | null;
 }
 
 export type ConcertState =
@@ -38,7 +57,10 @@ export interface ConcertStatus {
   sponsor_name: string | null;
 }
 
-export type SongStatus = "locked" | "pending" | "answered";
+export type SongStatus =
+  | "locked"
+  | "pending"
+  | "answered";
 
 export interface ParticipationResult {
   user_id: number;

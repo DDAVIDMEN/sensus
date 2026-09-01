@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models.concert import ConcertState
 from app.models.response import Response
-from app.models.song import Song
+from app.models.song import Song, SongOption
 from app.models.user import User
 from app.schemas.response import (
     ResponseCreate,
@@ -55,6 +55,7 @@ def save_response(
     response_data: ResponseCreate,
     db: Session = Depends(get_db),
 ):
+    # 1. Validar usuario
     user = (
         db.query(User)
         .filter(User.id == response_data.user_id)
@@ -67,6 +68,7 @@ def save_response(
             detail="Usuario no encontrado",
         )
 
+    # 2. Validar canción
     song = (
         db.query(Song)
         .filter(Song.id == response_data.song_id)
@@ -85,6 +87,7 @@ def save_response(
             detail="Esta canción no forma parte del análisis",
         )
 
+    # 3. Validar estado del concierto
     concert = get_concert_state(db)
 
     if concert.state != "SONG_ACTIVE":
@@ -113,8 +116,6 @@ def save_response(
 
     voting_ends_at = concert.voting_ends_at
 
-    # PostgreSQL puede devolver una fecha sin zona horaria,
-    # dependiendo de la configuración de la columna.
     if voting_ends_at.tzinfo is None:
         voting_ends_at = voting_ends_at.replace(
             tzinfo=timezone.utc
@@ -126,46 +127,54 @@ def save_response(
             detail="El tiempo para responder terminó",
         )
 
-    selected_option = (
-        response_data.selected_option
-        or response_data.selected_emotion
+    # 4. Validar que la opción existe
+    #    Y pertenece a la canción activa.
+    option = (
+        db.query(SongOption)
+        .filter(
+            SongOption.id == response_data.option_id,
+            SongOption.song_id == song.id,
+        )
+        .first()
     )
 
+    if not option:
+        raise HTTPException(
+            status_code=400,
+            detail="La opción seleccionada no es válida para esta canción",
+        )
+
+    # 5. Impedir una segunda respuesta
     existing_response = (
         db.query(Response)
         .filter(
-            Response.user_id
-            == response_data.user_id,
-            Response.song_id
-            == response_data.song_id,
+            Response.user_id == response_data.user_id,
+            Response.song_id == response_data.song_id,
         )
         .first()
     )
 
     if existing_response:
-        existing_response.selected_emotion = (
-            response_data.selected_emotion
-        )
-        existing_response.selected_option = (
-            selected_option
-        )
-        existing_response.option_value = (
-            response_data.option_value
-        )
+        existing_response.selected_emotion = option.title
+        existing_response.selected_option = option.title
+        existing_response.option_value = option.value
 
         db.commit()
         db.refresh(existing_response)
 
         return existing_response
 
+    # 6. El servidor obtiene nombre y puntuación
+    #    directamente de song_options.
     new_response = Response(
         user_id=response_data.user_id,
         song_id=response_data.song_id,
-        selected_emotion=(
-            response_data.selected_emotion
-        ),
-        selected_option=selected_option,
-        option_value=response_data.option_value,
+
+        # Compatibilidad temporal con la BD actual.
+        selected_emotion=option.title,
+
+        selected_option=option.title,
+        option_value=option.value,
     )
 
     db.add(new_response)

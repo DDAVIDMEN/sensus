@@ -18,28 +18,7 @@ import {
   Song,
 } from "@/types";
 
-const EMOTIONS = [
-  {
-    name: "Intimidad",
-    description:
-      "Una sensación de cercanía, apertura y conexión profunda.",
-  },
-  {
-    name: "Deseo",
-    description:
-      "Una atracción intensa o un impulso de conexión y placer.",
-  },
-  {
-    name: "Vulnerabilidad",
-    description:
-      "La sensación de exponerse y mostrarse sin barreras.",
-  },
-  {
-    name: "Plenitud",
-    description:
-      "Una experiencia de satisfacción, entrega y bienestar.",
-  },
-];
+
 
 type EmotionMap = Record<number, string>;
 
@@ -214,15 +193,16 @@ function SongsContent() {
     Boolean(concert.voting_ends_at) &&
     timeLeft > 0;
 
-  const handleEmotionSelect = async (
+  const handleOptionSelect = async (
     songId: number,
-    emotion: string
+    optionId: number,
+    optionTitle: string
   ) => {
     if (!user || !votingIsAvailable || isSaving) {
       return;
     }
 
-    const previousEmotion = emotionMap[songId];
+    const previousOption = emotionMap[songId];
 
     setSaveError("");
     setIsSaving(true);
@@ -230,14 +210,14 @@ function SongsContent() {
     // Actualización visual inmediata.
     setEmotionMap((previous) => ({
       ...previous,
-      [songId]: emotion,
+      [songId]: optionTitle,
     }));
 
     try {
       await api.post("/responses/", {
         user_id: user.id,
         song_id: songId,
-        selected_emotion: emotion,
+        option_id: optionId,
       });
     } catch (error) {
       console.error(
@@ -249,8 +229,8 @@ function SongsContent() {
       setEmotionMap((previous) => {
         const restored = { ...previous };
 
-        if (previousEmotion) {
-          restored[songId] = previousEmotion;
+        if (previousOption) {
+          restored[songId] = previousOption;
         } else {
           delete restored[songId];
         }
@@ -522,7 +502,7 @@ function SongsContent() {
               </h2>
 
               <p style={styles.statusText}>
-                Las opciones emocionales aparecerán durante
+                Las opciones de respuesta aparecerán durante
                 los últimos 15 segundos de la pieza.
               </p>
 
@@ -542,19 +522,20 @@ function SongsContent() {
                   </p>
 
                   <h2 style={styles.songHeading}>
-                    Esta canción me hace sentir:
+                    {currentSong.question_text ||
+                      "¿Qué dejó esta pieza en ti?"}
                   </h2>
                 </div>
               </div>
 
               <div style={styles.emotionGrid}>
-                {EMOTIONS.map((emotion) => {
+                {currentSong.options.map((option) => {
                   const isSelected =
-                    selectedEmotion === emotion.name;
+                    selectedEmotion === option.title;
 
                   return (
                     <label
-                      key={emotion.name}
+                      key={option.id}
                       style={styles.emotionOption(
                         isSelected,
                         isSaving
@@ -563,36 +544,38 @@ function SongsContent() {
                       <input
                         type="radio"
                         name={`song-${currentSong.id}`}
-                        value={emotion.name}
+                        value={option.id}
                         checked={isSelected}
                         disabled={isSaving}
                         onChange={() =>
-                          handleEmotionSelect(
+                          handleOptionSelect(
                             currentSong.id,
-                            emotion.name
+                            option.id,
+                            option.title
                           )
                         }
                         style={{
                           marginTop: "4px",
-                          accentColor:
-                            "var(--gold-light)",
+                          accentColor: "var(--gold-light)",
                         }}
                       />
 
                       <span>
-                        <strong
-                          style={styles.emotionName}
-                        >
-                          {emotion.name}
+                        <strong style={styles.emotionName}>
+                          {option.title}
                         </strong>
 
-                        <span
-                          style={
-                            styles.emotionDescription
-                          }
-                        >
-                          {emotion.description}
-                        </span>
+                        {option.subtitle && (
+                          <span style={styles.optionSubtitle}>
+                            {option.subtitle}
+                          </span>
+                        )}
+
+                        {option.description && (
+                          <span style={styles.emotionDescription}>
+                            {option.description}
+                          </span>
+                        )}
                       </span>
                     </label>
                   );
@@ -861,6 +844,15 @@ const styles = {
     display: "block",
     color: "#ffffff",
     fontSize: "18px",
+  } as React.CSSProperties,
+
+  optionSubtitle: {
+    display: "block",
+    marginTop: "5px",
+    color: "var(--gold-light)",
+    fontSize: "13px",
+    fontWeight: 700,
+    lineHeight: 1.4,
   } as React.CSSProperties,
 
   emotionDescription: {
