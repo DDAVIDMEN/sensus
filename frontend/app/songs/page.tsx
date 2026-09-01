@@ -387,9 +387,6 @@ function SongsContent() {
             emocional interactiva.
           </p>
 
-          <div style={styles.sponsorProgressTrack}>
-            <div style={styles.sponsorProgressFill} />
-          </div>
         </section>
       </AppShell>
     );
@@ -720,23 +717,6 @@ const styles = {
     fontWeight: 700,
     letterSpacing: "0.1em",
     textTransform: "uppercase",
-  } as React.CSSProperties,
-
-  sponsorProgressTrack: {
-    width: "min(100%, 420px)",
-    height: "5px",
-    margin: "36px auto 0",
-    borderRadius: "99px",
-    overflow: "hidden",
-    background: "var(--border)",
-  } as React.CSSProperties,
-
-  sponsorProgressFill: {
-    width: "65%",
-    height: "100%",
-    borderRadius: "99px",
-    background:
-      "linear-gradient(90deg, var(--gold), var(--gold-light))",
   } as React.CSSProperties,
 
   finishedIcon: {

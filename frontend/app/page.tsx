@@ -240,21 +240,25 @@ export default function HomePage() {
             {steps.map((step) => (
               <article
                 key={step.number}
-                className="sensus-card"
                 style={{
                   padding: "30px",
                   minHeight: "270px",
+                  border:
+                    "1px solid rgba(255, 255, 255, 0.16)",
+                  borderRadius: "16px",
+                  background: "var(--accent)",
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
                 <span
                   style={{
                     display: "block",
-                    color:
-                      "var(--text-muted)",
-                    fontSize: "13px",
-                    fontWeight: 700,
+                    color: "var(--gold-light)",
+                    fontSize: "24px",
+                    fontWeight: 800,
                     letterSpacing: "0.12em",
-                    marginBottom: "72px",
+                    marginBottom: "24px",
                   }}
                 >
                   {step.number}
@@ -263,6 +267,7 @@ export default function HomePage() {
                 <h3
                   style={{
                     margin: "0 0 14px",
+                   color: "#ffffff",
                     fontSize: "25px",
                   }}
                 >
@@ -272,8 +277,7 @@ export default function HomePage() {
                 <p
                   style={{
                     margin: 0,
-                    color:
-                      "var(--text-secondary)",
+                    color: "rgba(255, 255, 255, 0.78)",
                     lineHeight: 1.7,
                   }}
                 >

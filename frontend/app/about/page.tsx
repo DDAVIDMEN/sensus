@@ -23,7 +23,7 @@ export default function AboutPage() {
           <p
             style={{
               margin: "0 0 12px",
-              color: "var(--sensus-gold-light)",
+              color: "var(--gold-light)",
               fontSize: "13px",
               fontWeight: 700,
               letterSpacing: "0.12em",
@@ -33,7 +33,7 @@ export default function AboutPage() {
             El proyecto
           </p>
 
-          <h2 style={{ margin: "0 0 16px", fontSize: "27px" }}>
+          <h2 style={{ margin: "0 0 16px", fontSize: "27px" }} >
             Música, emoción y tecnología
           </h2>
 
@@ -60,7 +60,7 @@ export default function AboutPage() {
           <p
             style={{
               margin: "0 0 12px",
-              color: "var(--sensus-gold-light)",
+              color: "var(--gold-light)",
               fontSize: "13px",
               fontWeight: 700,
               letterSpacing: "0.12em",
@@ -94,10 +94,10 @@ export default function AboutPage() {
             padding: "32px",
           }}
         >
-          <p
+          <p 
             style={{
               margin: "0 0 12px",
-              color: "var(--sensus-gold-light)",
+              color: "var(--gold-light)",
               fontSize: "13px",
               fontWeight: 700,
               letterSpacing: "0.12em",

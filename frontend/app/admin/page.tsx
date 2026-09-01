@@ -821,7 +821,7 @@ function AdminContent() {
                     width: `${Math.min(
                       100,
                       (votingTimeLeft /
-                        15) *
+                        30) *
                         100
                     )}%`,
                   }}
@@ -950,8 +950,7 @@ function AdminContent() {
                     type="button"
                     disabled={
                       isUpdating ||
-                      concert.state ===
-                        "SONG_ACTIVE"
+                      concert.voting_open
                     }
                     onClick={() =>
                       setSelectedSongId(
@@ -1301,7 +1300,7 @@ function SmartControl({
         >
           {isUpdating
             ? "Abriendo..."
-            : "Abrir votación de 15 segundos"}
+            : "Abrir votación de 30 segundos"}
         </button>
 
         <div style={styles.divider} />
@@ -1331,6 +1330,76 @@ function SmartControl({
         >
           Saltar directamente al patrocinador
         </button>
+        <div style={styles.divider} />
+
+          <label style={styles.inputLabel}>
+            Siguiente canción
+          </label>
+
+          <select
+            value={selectedSongId ?? ""}
+            disabled={isUpdating}
+            onChange={(event) => {
+              const value = event.target.value;
+
+              onSongSelect(
+                value ? Number(value) : null
+              );
+            }}
+            style={styles.select}
+          >
+            <option value="">
+              Selecciona la siguiente canción
+            </option>
+
+            {songs.map((song) => (
+              <option
+                key={song.id}
+                value={song.id}
+                disabled={
+                  song.id === concert.current_song_id
+                }
+              >
+                {song.title}
+              </option>
+            ))}
+          </select>
+
+          {selectedSong && (
+            <div style={styles.selectionPreview}>
+              <span style={styles.selectionLabel}>
+                Próxima canción
+              </span>
+
+              <strong style={styles.selectionTitle}>
+                {selectedSong.title}
+              </strong>
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="sensus-button-primary"
+            disabled={
+              !selectedSongId ||
+              isUpdating
+            }
+            onClick={onStartSong}
+            style={{
+              cursor:
+                !selectedSongId || isUpdating
+                  ? "not-allowed"
+                  : "pointer",
+              opacity:
+                !selectedSongId || isUpdating
+                  ? 0.55
+                  : 1,
+            }}
+          >
+            {isUpdating
+              ? "Iniciando..."
+              : "Iniciar siguiente canción"}
+          </button>
       </div>
     );
   }

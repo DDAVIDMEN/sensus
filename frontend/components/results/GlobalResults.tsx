@@ -17,14 +17,14 @@ const CATEGORY_LABELS: Record<
   string,
   string
 > = {
-  COGNITIVE_ACTIVATION:
-    "Activación cognitiva",
+  COGNITIVE_RESONANCE:
+    "Resonancia cognitiva",
   EMOTIONAL_RESONANCE:
     "Resonancia emocional",
-  BODY_RESPONSE:
-    "Respuesta corporal",
-  STATE_OF_CONSCIOUSNESS:
-    "Estado de conciencia",
+  BODY_RESONANCE:
+    "Resonancia corporal",
+  TRANSFORMATIVE_RESONANCE:
+    "Resonancia transformadora",
 };
 
 export default function GlobalResults() {
@@ -415,7 +415,7 @@ const styles = {
     marginTop: "30px",
     display: "grid",
     gridTemplateColumns:
-      "repeat(2, minmax(260px, 1fr))",
+      "repeat(auto-fit, minmax(min(220px, 100%), 1fr))",
     gap: "12px",
   } as React.CSSProperties,
 

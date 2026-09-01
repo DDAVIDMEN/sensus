@@ -1,9 +1,14 @@
 "use client";
 
+import {
+  useEffect,
+  useState,
+} from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+
+import { useAuth } from "@/context/AuthContext";
 
 const navigation = [
   { href: "/", label: "Inicio" },
@@ -14,12 +19,39 @@ const navigation = [
 
 export default function MainNavbar() {
   const pathname = usePathname();
-  const { user, logout, isAuthenticated } = useAuth();
+
+  const {
+    user,
+    logout,
+    isAuthenticated,
+  } = useAuth();
+
+  const [isMenuOpen, setIsMenuOpen] =
+    useState(false);
+
+  // Cierra el menú al navegar.
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  const isActiveRoute = (href: string) =>
+    href === "/"
+      ? pathname === "/"
+      : pathname.startsWith(href);
+
+  const handleLogout = () => {
+    setIsMenuOpen(false);
+    logout();
+  };
 
   return (
     <header className="main-navbar">
       <div className="sensus-container navbar-content">
-        <Link href="/" className="navbar-brand">
+        <Link
+          href="/"
+          className="navbar-brand"
+          aria-label="Ir al inicio"
+        >
           <Image
             src="/logo.png"
             alt="Sensus"
@@ -30,31 +62,35 @@ export default function MainNavbar() {
           />
         </Link>
 
-        <nav className="navbar-links" aria-label="Navegación principal">
-          {navigation.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`navbar-link ${isActive ? "active" : ""}`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+        {/* Navegación de escritorio */}
+        <nav
+          className="navbar-links navbar-desktop"
+          aria-label="Navegación principal"
+        >
+          {navigation.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`navbar-link ${
+                isActiveRoute(item.href)
+                  ? "active"
+                  : ""
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        <div className="navbar-actions">
+        {/* Acciones de escritorio */}
+        <div className="navbar-actions navbar-desktop">
           {isAuthenticated ? (
             <>
-              {/* Muestra el enlace solo si el usuario existe y es admin */}
               {user?.is_admin && (
-                <Link href="/admin" className="navbar-admin-link">
+                <Link
+                  href="/admin"
+                  className="navbar-admin-link"
+                >
                   Panel admin
                 </Link>
               )}
@@ -62,23 +98,126 @@ export default function MainNavbar() {
               <div className="navbar-user">
                 <span>{user?.email}</span>
 
-                <button type="button" onClick={logout}>
+                <button
+                  type="button"
+                  onClick={logout}
+                >
                   Cerrar sesión
                 </button>
               </div>
             </>
           ) : (
             <>
-              <Link href="/login" className="navbar-login-link">
+              <Link
+                href="/login"
+                className="navbar-login-link"
+              >
                 Iniciar sesión
               </Link>
 
-              <Link href="/register" className="sensus-button-primary navbar-register">
+              <Link
+                href="/register"
+                className="sensus-button-primary navbar-register"
+              >
                 Crear cuenta
               </Link>
             </>
           )}
         </div>
+
+        {/* Botón hamburguesa móvil */}
+        <button
+          type="button"
+          className={`navbar-menu-button ${
+            isMenuOpen ? "open" : ""
+          }`}
+          onClick={() =>
+            setIsMenuOpen((previous) => !previous)
+          }
+          aria-label={
+            isMenuOpen
+              ? "Cerrar menú"
+              : "Abrir menú"
+          }
+          aria-expanded={isMenuOpen}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
+
+      {/* Menú móvil */}
+      <div
+        className={`navbar-mobile-menu ${
+          isMenuOpen ? "open" : ""
+        }`}
+      >
+        <nav
+          className="navbar-mobile-links"
+          aria-label="Navegación móvil"
+        >
+          {navigation.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`navbar-mobile-link ${
+                isActiveRoute(item.href)
+                  ? "active"
+                  : ""
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+
+          {isAuthenticated ? (
+            <>
+              {user?.is_admin && (
+                <Link
+                  href="/admin"
+                  className={`navbar-mobile-link ${
+                    pathname.startsWith("/admin")
+                      ? "active"
+                      : ""
+                  }`}
+                >
+                  Panel admin
+                </Link>
+              )}
+
+              {user?.email && (
+                <div className="navbar-mobile-user">
+                  {user.email}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="navbar-mobile-logout"
+                onClick={handleLogout}
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="navbar-mobile-link"
+              >
+                Iniciar sesión
+              </Link>
+
+              <Link
+                href="/register"
+                className="sensus-button-primary navbar-mobile-register"
+              >
+                Crear cuenta
+              </Link>
+            </>
+          )}
+        </nav>
       </div>
     </header>
   );

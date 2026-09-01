@@ -167,7 +167,7 @@ def open_voting(
     concert.voting_open = True
     concert.voting_ends_at = (
         datetime.now(timezone.utc)
-        + timedelta(seconds=15)
+        + timedelta(seconds=30)
     )
 
     db.commit()
